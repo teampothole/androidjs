@@ -1,5 +1,6 @@
 var Mam = require('mam.client.js/lib/mam.node.js');
 var IOTA = require('iota.lib.js')
+const KV = require('./kv');
 
 const iota = new IOTA({ 'provider': process.env.IRI_URL });
 let mamState = Mam.init(iota)
@@ -12,13 +13,15 @@ const doPublish = (trytes) => {
         if (root == '') {
             root = message.root;
         }
-        currentRoot = message.root;
-
-        //kv store({root: root, current: currentRoot});
+        let roots = {
+            root: root, current: message.root
+        };
 
         mamState = message.state
         Mam.attach(message.payload, message.address).then(() => {
-            resolve(message);
+            KV(roots).then(kvResp => {
+                resolve(message);
+            });
         });
     });
 };
